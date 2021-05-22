@@ -30,9 +30,9 @@ RUN curl -sL https://deb.nodesource.com/setup_14.x | bash
 RUN apt-get install --yes nodejs
 
 #COPY all files from bbb-streaming project
-COPY docker-entrypoint.sh start.sh stop.sh nsswrapper.sh ./
-COPY export.js  ./
-COPY manifest.json package-lock.json package.json ./
+COPY *.sh ./
+COPY *.js  ./
+COPY *.json ./
 
 #Install npm scripts
 RUN npm install 
