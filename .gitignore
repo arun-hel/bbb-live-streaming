@@ -1,7 +1,6 @@
 composer.phar
 /vendor/
 .env
-env.js
 ffmpeg_cmd.sh
 /node_modules/
 nodetext.js
