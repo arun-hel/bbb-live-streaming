@@ -9,5 +9,9 @@ sed -i 's/BBB_SECRET=.*/BBB_SECRET=$SECRET/g' .env
 echo "Creating bbb-live-streaming:v1 Docker image"
 docker build -t bbb-live-streaming:v1 .
 echo "Cleaning up the folder"
-mkdir src
+if [ -d src ];then
+echo "src folder exist, skipping mkdir src"
+else 
+mkdir -p src
+fi
 cp *.js Dockerfile *.json sample-env start.sh stop.sh bbb-streaming-install.sh nsswrapper.sh docker-entrypoint.sh src 
