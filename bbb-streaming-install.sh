@@ -14,4 +14,4 @@ echo "src folder exist, skipping mkdir src"
 else 
 mkdir -p src
 fi
-cp *.js Dockerfile *.json sample-env start.sh stop.sh bbb-streaming-install.sh nsswrapper.sh docker-entrypoint.sh src 
+mv -f *.js Dockerfile *.json sample-env start.sh stop.sh bbb-streaming-install.sh nsswrapper.sh docker-entrypoint.sh src 
