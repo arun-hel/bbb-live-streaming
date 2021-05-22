@@ -15,13 +15,12 @@ var RTMP_URL = process.env.RTMP_URL
 var VIEWER_URL = process.env.VIEWER_URL
 let api = bbb.api(BBB_URL, BBB_SECRET)
 let http = bbb.http
-// var disp_num = Math.floor(Math.random() * (200 - 99) + 99);
-var disp_num = 0.0
-// var xvfb        = new Xvfb({
-//     displayNum: disp_num,
-//     silent: true,
-//     xvfb_args: ["-screen", "0", "1280x800x24", "-ac", "-nolisten", "tcp", "-dpi", "96", "+extension", "RANDR"]
-// });
+var disp_num = Math.floor(Math.random() * (200 - 99) + 99);
+var xvfb        = new Xvfb({
+    displayNum: disp_num,
+    silent: true,
+    xvfb_args: ["-screen", "0", "1280x800x24", "-ac", "-nolisten", "tcp", "-dpi", "96", "+extension", "RANDR"]
+});
 var width       = 1280;
 var height      = 720;
 var options     = {
@@ -64,9 +63,9 @@ async function main() {
     let browser, page;
 
     try{
-        // if(platform == "linux"){
-        //     xvfb.startSync()
-        // }
+        if(platform == "linux"){
+            xvfb.startSync()
+        }
         
         var JOIN_PARAM = {
             'userdata-bbb_force_listen_only' : 'true',
@@ -188,9 +187,9 @@ async function main() {
         page.close && await page.close()
         browser.close && await browser.close()
 
-        // if(platform == "linux"){
-        //     xvfb.stopSync()
-        // }
+        if(platform == "linux"){
+            xvfb.stopSync()
+        }
     }
 }
 
