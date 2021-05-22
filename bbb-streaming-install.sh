@@ -10,4 +10,4 @@ echo "Creating bbb-live-streaming:v1 Docker image"
 docker build -t bbb-live-streaming:v1 .
 echo "Cleaning up the folder"
 mkdir src
-cp *.js Dockerfile *.json sample-env start.sh stop.sh bbb-streaming-install.sh src 
+cp *.js Dockerfile *.json sample-env start.sh stop.sh bbb-streaming-install.sh nsswrapper.sh docker-entrypoint.sh src 
