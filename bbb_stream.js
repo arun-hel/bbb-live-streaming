@@ -1,5 +1,5 @@
 const puppeteer = require('puppeteer');
-// const Xvfb      = require('xvfb');
+const Xvfb      = require('xvfb');
 const child_process = require('child_process');
 const bbb = require('bigbluebutton-js')
 // variables
