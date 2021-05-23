@@ -8,13 +8,12 @@
   "keywords": [
     "stream",
     "chrome",
-    "puppeteer",
-    "screencast"
+    "puppeteer"
   ],
   "dependencies": {
     "bigbluebutton-js": "^0.2.0",
     "dotenv": "^8.6.0",
-    "puppeteer": "^2.1.1",
-    "xvfb": "^0.3.0"
+    "puppeteer": "^9.1.1",
+    "xvfb": "^0.4.0"
   }
 }

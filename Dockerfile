@@ -30,16 +30,12 @@ RUN curl -sL https://deb.nodesource.com/setup_14.x | bash
 RUN apt-get install --yes nodejs
 
 #COPY all files from bbb-streaming project
-COPY *.sh /usr/src/app/
-COPY *.js  /usr/src/app/
-COPY *.json /usr/src/app/
-RUN cd /usr/src/app
-RUN chmod +x *.sh
+COPY * .
+RUN chmod +x * 
 
 #Install npm scripts
 RUN npm install 
 
 # Command that will execute when container starts
-ENTRYPOINT ["sh","/usr/src/app/docker-entrypoint.sh"]
-EXPOSE 8080
-CMD node /usr/src/app/bbb_stream.js
+ENTRYPOINT ["sh", "docker-entrypoint.sh"]
+CMD ["node", "bbb_stream.js"]
