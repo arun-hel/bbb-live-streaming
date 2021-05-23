@@ -18,4 +18,5 @@ else
 mkdir -p src
 fi
 
+echo "Folder cleanup"
 mv -f *.js Dockerfile *.json sample-env start.sh stop.sh bbb-streaming-install.sh nsswrapper.sh docker-entrypoint.sh src 
