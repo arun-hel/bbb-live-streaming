@@ -2,8 +2,8 @@ const puppeteer = require('puppeteer');
 const Xvfb      = require('xvfb');
 const child_process = require('child_process');
 const bbb = require('bigbluebutton-js')
-// variables
 require('dotenv').config()
+// variables
 var BBB_URL = process.env.BBB_URL;
 var BBB_SECRET = process.env.BBB_SECRET;
 var MEETING_ID = process.env.MEETING_ID;
@@ -32,7 +32,9 @@ var options     = {
     '--shm-size=2gb',
     '--disable-dev-shm-usage',
     `--window-size=${width},${height}`,
+    '--app=https://www.google.com/',
     '--start-fullscreen',
+    
   ],
 }
 options.executablePath = "/usr/bin/google-chrome"
@@ -52,8 +54,8 @@ async function main() {
 
     var running = await IS_MEETING_RUNNING(MEETING_ID);
 
-    // If meeting not running wait until meeting to start,
-    // Check meeting status every 5 sec util meeting running.
+    // If meeting not running, wait until the meeting to start,
+    // Check meeting status every 5 sec util the meeting running = true.
     while(!running){
         running = await IS_MEETING_RUNNING(MEETING_ID);
         console.log("Meeting is not running, We will check in 5 sec ...")
