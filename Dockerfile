@@ -5,7 +5,7 @@ FROM ubuntu:bionic
 WORKDIR /usr/src/app
 
 # Install curl and gnupg2 for source file modification
-RUN apt-get -y update && apt-get -y install curl gnupg2
+RUN apt-get -y update && apt-get -y install curl gnupg2 psmisc
 
 # Install chrome-stable
 RUN curl -sS -o - https://dl-ssl.google.com/linux/linux_signing_key.pub | apt-key add
@@ -30,7 +30,7 @@ RUN curl -sL https://deb.nodesource.com/setup_14.x | bash
 RUN apt-get install --yes nodejs
 
 #COPY all files from bbb-streaming project
-COPY * .
+COPY * ./
 RUN chmod +x * 
 
 #Install npm scripts
@@ -38,4 +38,4 @@ RUN npm install
 
 # Command that will execute when container starts
 ENTRYPOINT ["sh", "docker-entrypoint.sh"]
-CMD ["node", "bbb_stream.js"]
+CMD ["node", "/usr/src/app/bbb_stream.js"]

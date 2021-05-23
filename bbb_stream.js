@@ -13,16 +13,17 @@ var HIDE_CHAT = process.env.HIDE_CHAT
 var HIDE_USER_LIST = process.env.HIDE_USER_LIST
 var RTMP_URL = process.env.RTMP_URL
 var VIEWER_URL = process.env.VIEWER_URL
+var SCREEN_RESOLUTION = process.env.SCREEN_RESOLUTION
 let api = bbb.api(BBB_URL, BBB_SECRET)
 let http = bbb.http
 var disp_num = Math.floor(Math.random() * (200 - 99) + 99);
 var xvfb = new Xvfb({
     displayNum: disp_num,
     silent: true,
-    xvfb_args: ["-screen", "0", "1280x800x24", "-ac", "-nolisten", "tcp", "-dpi", "96", "+extension", "RANDR"]
+    xvfb_args: ["-screen", "0", `${SCREEN_RESOLUTION}x24`, "-ac", "-nolisten", "tcp", "-dpi", "96", "+extension", "RANDR"]
 });
-var width       = 1280;
-var height      = 720;
+var width       = SCREEN_RESOLUTION.split("x")[0];
+var height      = SCREEN_RESOLUTION.split("x")[1];
 var options     = {
   headless: false,
   args: [
@@ -34,7 +35,6 @@ var options     = {
     '--start-fullscreen',
   ],
 }
-
 options.executablePath = "/usr/bin/google-chrome"
 
 async function main() {
@@ -63,10 +63,7 @@ async function main() {
     let browser, page;
 
     try{
-        if(platform == "linux"){
-            xvfb.startSync()
-        }
-        
+        xvfb.startSync()
         var JOIN_PARAM = {
             'userdata-bbb_force_listen_only' : 'true',
             'userdata-bbb_listen_only_mode': 'true',
@@ -145,7 +142,7 @@ async function main() {
 
         //  ffmpeg screen record start
          const ls = child_process.spawn('sh',
-                    ['start.sh',' ',`${RTMP_URL}`,' ', `${disp_num}`],
+                    ['start.sh',' ',`${RTMP_URL}`,' ', `${disp_num}`, ' ',`${SCREEN_RESOLUTION}`],
                     { shell: true });
         
                     ls.stdout.on('data', (data) => {
@@ -186,10 +183,8 @@ async function main() {
     } finally {
         page.close && await page.close()
         browser.close && await browser.close()
-
-        if(platform == "linux"){
-            xvfb.stopSync()
-        }
+        xvfb.stopSync()
+ 
     }
 }
 
