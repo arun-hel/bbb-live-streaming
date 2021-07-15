@@ -1,29 +1,30 @@
 const puppeteer = require('puppeteer');
 const Xvfb      = require('xvfb');
 const child_process = require('child_process');
-const bbb = require('bigbluebutton-js')
-require('dotenv').config()
+const bbb = require('bigbluebutton-js');
+var kill  = require('tree-kill');
 // variables
-var BBB_URL = process.env.BBB_URL;
-var BBB_SECRET = process.env.BBB_SECRET;
-var MEETING_ID = process.env.MEETING_ID;
-var MODORATOR_PW = process.env.MODORATOR_PW
-var HIDE_PRESENTATION = process.env.HIDE_PRESENTATION
-var HIDE_CHAT = process.env.HIDE_CHAT
-var HIDE_USER_LIST = process.env.HIDE_USER_LIST
-var RTMP_URL = process.env.RTMP_URL
-var VIEWER_URL = process.env.VIEWER_URL
-var SCREEN_RESOLUTION = process.env.SCREEN_RESOLUTION
+var BBB_URL = process.argv[2];
+var bbb_url_obj = new URL(BBB_URL)
+BBB_URL = bbb_url_obj.origin + "/bigbluebutton/"
+var BBB_SECRET = process.argv[3];
+var MEETING_ID = process.argv[4];
+var ATTENDIEE_PW = process.argv[5]
+var SHOW_PRESENTATION = process.argv[6]
+var HIDE_CHAT = process.argv[7]
+var HIDE_USER_LIST = process.argv[8]
+var RTMP_URL = process.argv[9]
+var VIEWER_URL = process.argv[10]
 let api = bbb.api(BBB_URL, BBB_SECRET)
 let http = bbb.http
 var disp_num = Math.floor(Math.random() * (200 - 99) + 99);
 var xvfb = new Xvfb({
     displayNum: disp_num,
     silent: true,
-    xvfb_args: ["-screen", "0", `${SCREEN_RESOLUTION}x24`, "-ac", "-nolisten", "tcp", "-dpi", "96", "+extension", "RANDR"]
+    xvfb_args: ["-screen", "0", "1280x800x24", "-ac", "-nolisten", "tcp", "-dpi", "96", "+extension", "RANDR"]
 });
-var width       = SCREEN_RESOLUTION.split("x")[0];
-var height      = SCREEN_RESOLUTION.split("x")[1];
+var width       = 1280;
+var height      = 800;
 var options     = {
   headless: false,
   args: [
@@ -43,7 +44,7 @@ async function main() {
     
     // Checks if  meeting running for a given MEETING_ID and returns true|false
     function IS_MEETING_RUNNING(meetingID){
-        let meet = api.monitoring.isMeetingRunning(MEETING_ID) 
+        let meet = api.monitoring.isMeetingRunning(meetingID) 
         var status = http(meet).then((result) => {
             return result["running"] 
         })
@@ -67,18 +68,20 @@ async function main() {
     try{
         xvfb.startSync()
         var JOIN_PARAM = {
-            'userdata-bbb_force_listen_only' : 'true',
+            'userdata-bbb_force_listen_only' : 'false',
             'userdata-bbb_listen_only_mode': 'true',
-            'userdata-bbb_skip_check_audio': 'true'          
-         } 
+            'userdata-bbb_skip_check_audio': 'true',
+            'userdata-bbb_show_public_chat_on_login': 'true'        
+         }
 
-        //  Hides presentation if HIDE_PRESENTATION is true
-         if (HIDE_PRESENTATION == 'true'){
+        //  Hides presentation if SHOW_PRESENTATION is true
+         if (SHOW_PRESENTATION == 'false'){
              JOIN_PARAM['userdata-bbb_auto_swap_layout'] = 'true'
          }
 
         //  Create Join url 
-        let url = api.administration.join('Live Stream', MEETING_ID, MODORATOR_PW, JOIN_PARAM)      
+        let url = api.administration.join('Live Stream', MEETING_ID, ATTENDIEE_PW, JOIN_PARAM)
+        console.log(url)      
         browser = await puppeteer.launch(options)
         const pages = await browser.pages()
         page = pages[0]
@@ -91,25 +94,39 @@ async function main() {
         await page.setBypassCSP(true)
 
         // Select Listen only mode
+        try{
         await page.waitForSelector('[aria-label="Listen only"]');
         await page.click('[aria-label="Listen only"]', {waitUntil: 'domcontentloaded'});
-        await page.waitForXPath('/html/body/div[5]/div/div',{hidden:true})
+        await page.waitForTimeout(5000)
+    }
+    catch(err){
+        console.log(err)
+    }
 
         // Hide User List
         if (HIDE_USER_LIST == 'true'){
+            try{
             // Hides user list if HIDE_USER_LIST is true
-            await page.waitForSelector('#app > main > section > div:nth-child(2)', {waitUntil: 'domcontentloaded'})
-            .then(()=> page.$eval('#app > main > section > div:nth-child(2)', element => element.style.display = "none"));
-       
-            // hides padding of user list
-            page.$eval('#app > main > section > div:nth-child(3)', element => element.style.display = "none");
+                await page.waitForSelector('#app > main > section > div:nth-child(1)', {waitUntil: 'domcontentloaded'})
+                .then(()=> page.$eval('#app > main > section > div:nth-child(1)', element => element.style.display = "none"));
+        
+                // hides padding of user list
+                page.$eval('#app > main > section > div:nth-child(2)', element => element.style.display = "none");
+            }
+            catch(err){
+                console.log(err)
+            }
         }
-
         // Hides chat is HIDE_CHAT is true
         if(HIDE_CHAT == 'true'){
+            try{
             await page.waitForSelector('button[aria-label="Hide Public Chat"]');
             await page.click('button[aria-label="Hide Public Chat"]', {waitUntil: 'domcontentloaded'});
         }
+        catch(err){
+            console.log(err)
+        }
+    }
 
         // Send VIEWER_URL in chat only if chat is enabled in .env
         if((HIDE_CHAT == 'false') && (VIEWER_URL.length>0)){
@@ -141,11 +158,12 @@ async function main() {
         // Hide mouse
         await page.mouse.move(0, 700);
         await page.addStyleTag({content: '@keyframes refresh {0%{ opacity: 1 } 100% { opacity: 0.99 }} body { animation: refresh .01s infinite }'});
-
+        
+        console.log("meeting started")
         //  ffmpeg screen record start
-         const ls = child_process.spawn('sh',
-                    ['start.sh',' ',`${RTMP_URL}`,' ', `${disp_num}`, ' ',`${SCREEN_RESOLUTION}`],
-                    { shell: true });
+         const ls = child_process.spawn('sh ',
+                    ['/usr/src/app/bbb-live-streaming/start.sh',' ',`${RTMP_URL}`,' ', `${disp_num}`],
+                    { shell: true});
         
                     ls.stdout.on('data', (data) => {
                         console.log(`stdout: ${data}`);
@@ -157,29 +175,29 @@ async function main() {
                 
                     ls.on('close', (code) => {
                         console.log(`child process exited with code ${code}`);});
-  
-        await page.waitForSelector('[data-test="meetingEndedModal"]', {timeout: 0});
 
+
+                        process.once("SIGINT",function (code) {
+                            kill(ls.pid)
+                            page.close 
+                            browser.close 
+                            xvfb.stopSync()
+                            console.log("SIGINT received...");
+                            
+                        });
+
+                        process.once("SIGTERM", function (code) {
+                            kill(ls.pid)
+                            page.close 
+                            browser.close 
+                            xvfb.stopSync()
+                            console.log("SIGTERM received...");
+                        });
+
+        await page.waitForSelector('[data-test="meetingEndedModalTitle"]', {timeout: 0});
         console.log("meeting ended")
-
-
-        const rec = child_process.spawn('sh',
-                    ['stop.sh'],
-                    { shell: true });
+        kill(ls.pid)
         
-                    rec.stdout.on('data', (data) => {
-                        console.log(`stdout: ${data}`);
-                    });
-                
-                    rec.stderr.on('data', (data) => {
-                        console.error(`stderr: ${data}`);
-                    });
-                
-                    rec.on('close', (code) => {
-                        console.log(`child process exited with code ${code}`);});
-
-
-
     }catch(err) {
         console.log(err)
     } finally {
@@ -191,3 +209,4 @@ async function main() {
 }
 
 main()
+
